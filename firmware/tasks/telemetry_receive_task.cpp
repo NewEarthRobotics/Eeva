@@ -93,25 +93,34 @@ void TelemetryReceiveTask::handle(glo_driving_command_t & driving_command)
     glo_motion_commands_t motion_commands;
     glo_motion_commands.read(&motion_commands);
 
+    const float max_angular_velocity_deg = 120 * DEG2RAD;
+    const float max_linear_velocity = 2; // m/s
+
     if (driving_command.movement_type & DRIVING_COMMAND_RIGHT)
     {
-        motion_commands.angular_velocity = -90.0f * DEG2RAD;
+        if (motion_commands.angular_velocity > 0) { motion_commands.angular_velocity = 0; }
+        motion_commands.angular_velocity -= 20.0f * DEG2RAD;
     }
     else if (driving_command.movement_type & DRIVING_COMMAND_LEFT)
     {
-        motion_commands.angular_velocity = 90.0f * DEG2RAD;
+        if (motion_commands.angular_velocity < 0) { motion_commands.angular_velocity = 0; }
+        motion_commands.angular_velocity += 20.0f * DEG2RAD;
     }
     else
     {
         motion_commands.angular_velocity = 0;
     }
 
+    // Limit how fast robot turns.
+    motion_commands.angular_velocity = limit(motion_commands.angular_velocity,
+                                             -max_angular_velocity_deg, max_angular_velocity_deg);
+
     if (driving_command.movement_type & DRIVING_COMMAND_FORWARD)
     {
         if (motion_commands.linear_velocity > -0.00001f)
         {
             motion_commands.linear_velocity += 0.04f;
-            limit(motion_commands.linear_velocity, -2.0f, 2.0f);
+
         }
         else // user hit forward to stop backing up
         {
@@ -123,13 +132,16 @@ void TelemetryReceiveTask::handle(glo_driving_command_t & driving_command)
         if (motion_commands.linear_velocity < 0.00001f)
         {
             motion_commands.linear_velocity -= 0.04f;
-            limit(motion_commands.linear_velocity, -2.0f, 2.0f);
         }
         else // user hit back to stop driving forward
         {
             motion_commands.linear_velocity = 0.0f;
         }
     }
+
+    // Limit how fast robot drives.
+    motion_commands.linear_velocity = limit(motion_commands.linear_velocity,
+                                            -max_linear_velocity, max_linear_velocity);
 
     if (driving_command.movement_type & DRIVING_COMMAND_STOP)
     {
