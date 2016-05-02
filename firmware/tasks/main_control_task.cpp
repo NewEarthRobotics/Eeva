@@ -243,8 +243,8 @@ void MainControlTask::runDataCapture(void)
             capture_data_.time = delta_t_ * capture_run_counts_;
             capture_data_.d1 = roll_pitch_yaw_.rpy[1]; // robot tilt (i.e. pitch)
             capture_data_.d2 = wave_.value;
-            capture_data_.d3 = motors_.left_duty;
-            capture_data_.d4 = motors_.right_duty;
+            capture_data_.d3 = motors_.left_voltage;
+            capture_data_.d4 = motors_.right_voltage;
             capture_data_.d5 = odometry_.left_distance;
             capture_data_.d6 = odometry_.right_distance;
             capture_data_.d7 = odometry_.left_speed;
