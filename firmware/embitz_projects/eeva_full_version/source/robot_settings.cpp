@@ -4,7 +4,7 @@
 #include "robot_settings.h"
 
 // Current firmware version
-const int32_t FIRMWARE_VERSION = 6;
+const int32_t FIRMWARE_VERSION = 7;
 
 // Wheel radius in meters.
 const float WHEEL_RADIUS = 0.03f;
