@@ -29,20 +29,20 @@ void MainControlTask::balanceMode(void)
 
     float beta_command = distance_command_ / WHEEL_RADIUS;
 
-    // Multiply states by feedback gains to calculate duty cycle command.
-    float duty_cycle = theta*K_[0] + thetad*K_[1] + (beta-beta_command)*K_[2] + betad*K_[3];
+    // Multiply states by feedback gains to calculate voltage command.
+    float motor_voltage = theta*K_[0] + thetad*K_[1] + (beta-beta_command)*K_[2] + betad*K_[3];
 
     float theta_error = theta_cmd - roll_pitch_yaw_.rpy[1];
 
-    // Run yaw controller to calculate desired difference in duty cycle between motors.
+    // Run yaw controller to calculate desired difference in voltage between motors.
     float yaw_error = yaw_command_ - odometry_.yaw;
-    float delta_duty_cycle = yaw_pid.calculate(yaw_error, -imu_.gyros[2], delta_t_);
+    float delta_voltage = yaw_pid.calculate(yaw_error, -imu_.gyros[2], delta_t_);
 
     bool fallen_down = (theta_error > 0.8f) || (theta_error < -0.8f);
     if (fallen_down)
     {
-        duty_cycle = 0.0f;
-        delta_duty_cycle = 0.0f;
+        motor_voltage = 0.0f;
+        delta_voltage = 0.0f;
         yaw_pid.resetIntegral();
 
         // Keep commands in sync with state to keep from building up large error.
@@ -53,7 +53,7 @@ void MainControlTask::balanceMode(void)
         receive_task.handle(motion_commands_); // request reset to be published.
     }
 
-    motor_pwm_.left_duty = duty_cycle - delta_duty_cycle;
-    motor_pwm_.right_duty = duty_cycle + delta_duty_cycle;
+    motors_.left_voltage = motor_voltage - delta_voltage;
+    motors_.right_voltage = motor_voltage + delta_voltage;
 
 }

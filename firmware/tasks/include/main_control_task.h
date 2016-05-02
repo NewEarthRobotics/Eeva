@@ -64,9 +64,9 @@ private: // methods
     // Publish data to all globs that this task owns.
     void publishNewData(void);
 
-    // Validate the duty cycles stored in motor_pwm_ and write the values to the H-Bridge.
-    // If there is a critical error, such as low battery, then the values will be set to 0.
-    void updateMotorPWM(void);
+    // Convert the commanded motor voltages stored in motors_ to duty cycles and write the values to the H-Bridge.
+    // If there is a critical error, such as low battery, then the duty cycles will be set to 0.
+    void updateMotorVoltage(void);
 
     // Check if need to be capturing data and if so then saves data off
     // until it's time to send back.
@@ -137,7 +137,7 @@ private: // fields
     glo_status_data_t status_data_;
 
     // Globs that this task owns.
-    glo_motor_pwm_t motor_pwm_;
+    glo_motor_control_t motors_;
     glo_odometry_t odometry_;
     glo_analog_t analog_;
     glo_wave_t wave_;

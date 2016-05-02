@@ -12,12 +12,12 @@
 //******************************************************************************
 MainControlTask::MainControlTask(float frequency) :
         PeriodicTask("Main Control", TASK_ID_MAIN_CONTROL, frequency),
-        yaw_pid(2, 20, 0.05, -0.3, 0.3, -0.8, 0.8),
-        left_speed_pid(1.00, 30, 0.0, -0.3, 0.3, -0.8, 0.8),
-        right_speed_pid(1.00, 30, 0.0, -0.3, 0.3, -0.8, 0.8),
-        left_position_pid(0.00, 0, 0.0, -0.3, 0.3, -0.8, 0.8),
-        right_position_pid(0.00, 0, 0.0, -0.3, 0.3, -0.8, 0.8),
-        line_track_pid(50, 120, 0.0, -0.3, 0.3, -.5, .5),
+        yaw_pid(16, 160, 0.4, -2.5, 2.5, -10, 10),
+        left_speed_pid(8, 240, 0.0, -2.5, 2.5, -10, 10),
+        right_speed_pid(8, 240, 0.0, -2.5, 2.5, -10, 10),
+        left_position_pid(0, 0, 0.0, -2.5, 2.5, -10, 10),
+        right_position_pid(0, 0, 0.0, -2.5, 2.5, -10, 10),
+        line_track_pid(400, 960, 0.0, -2.5, 2.5, -10, 10),
         left_encoder_(EncoderA),
         right_encoder_(EncoderB),
         left_deriv_(delta_t_, 20.0f , 0.707f),
@@ -63,7 +63,7 @@ void MainControlTask::publishNewData(void)
     glo_odometry.publish(&odometry_);
     glo_analog.publish(&analog_);
     glo_wave.publish(&wave_);
-    glo_motor_pwm.publish(&motor_pwm_);
+    glo_motor_control.publish(&motors_);
 }
 
 //******************************************************************************
@@ -85,10 +85,10 @@ void MainControlTask::run(void)
     odometry_.right_speed = right_deriv_.calculate(odometry_.right_distance);
     odometry_.avg_speed = (odometry_.left_speed + odometry_.right_speed) / 2.0f;
 
-    // Run the current mode to calculate PWM duty cycles for the motors.
+    // Run the current mode to calculate the voltage to apply to each motor.
     // Default to zero in case a mode doesn't update one (or both) of the values.
-    motor_pwm_.left_duty = 0;
-    motor_pwm_.right_duty = 0;
+    motors_.left_voltage = 0;
+    motors_.right_voltage = 0;
     switch (modes_.main_mode)
     {
         case MAIN_MODE_BALANCE:
@@ -112,7 +112,7 @@ void MainControlTask::run(void)
     }
 
     // Update how much voltage is being applied to the motors.
-    updateMotorPWM();
+    updateMotorVoltage();
 
     // Capture / send back data if the user has requested it.
     runDataCapture();
@@ -131,7 +131,7 @@ void MainControlTask::run(void)
 }
 
 //******************************************************************************
-void MainControlTask::updateMotorPWM(void)
+void MainControlTask::updateMotorVoltage(void)
 {
     // Only command motors to spin when in a valid state.
     bool in_valid_state = (modes_.state == STATE_NORMAL);
@@ -141,13 +141,25 @@ void MainControlTask::updateMotorPWM(void)
 
     if (!in_valid_state || error_detected)
     {
-        motor_pwm_.left_duty = 0;
-        motor_pwm_.right_duty = 0;
+        motors_.left_voltage = 0;
+        motors_.right_voltage = 0;
     }
 
+    // At this point we should always have a valid battery voltage, which we need so we can figure
+    // out what PWM to apply to the motors.
+    if (analog_.battery_voltage <= 0)
+    {
+        assert_always_msg(ASSERT_CONTINUE, "Battery voltage reading as 0 volts.");
+        return;
+    }
+
+    // Convert voltages to duty cycles.
+    motors_.left_duty = motors_.left_voltage / analog_.battery_voltage;
+    motors_.right_duty = motors_.right_voltage / analog_.battery_voltage;
+
     // Make sure duty cycle is between -100% and 100%
-    motor_pwm_.left_duty = limit(motor_pwm_.left_duty, -1.0f, 1.0f);
-    motor_pwm_.right_duty = limit(motor_pwm_.right_duty, -1.0f, 1.0f);
+    motors_.left_duty = limit(motors_.left_duty, -1.0f, 1.0f);
+    motors_.right_duty = limit(motors_.right_duty, -1.0f, 1.0f);
 
     // The effective voltage applied to the motor for a given duty cycle is proportional
     // to the current battery voltage.  To remove this dependency so that performance doesn't change
@@ -156,16 +168,20 @@ void MainControlTask::updateMotorPWM(void)
     // allowed across the motors. So if the battery is at 8 volts and the maximum allowed voltage
     // is 6.3 volts then a 100% duty cycle will get scaled down by (6.3 / 8) to be a 78% duty cycle.
     float scale = 1;
-    if ((analog_.battery_voltage > 0) && (CRITICAL_BATTERY_VOLTAGE <= analog_.battery_voltage))
+    if (CRITICAL_BATTERY_VOLTAGE <= analog_.battery_voltage)
     {
         scale = CRITICAL_BATTERY_VOLTAGE / analog_.battery_voltage;
     }
-    motor_pwm_.left_duty *= scale;
-    motor_pwm_.right_duty *= scale;
+    motors_.left_duty *= scale;
+    motors_.right_duty *= scale;
+
+    // Recalculate applied voltages so they're consistent with the "corrected" PWM values.
+    motors_.left_voltage = motors_.left_duty * analog_.battery_voltage;
+    motors_.right_voltage = motors_.right_duty * analog_.battery_voltage;
 
     // Take into account order of motor wiring.
-    float left_duty = motor_pwm_.left_duty * MOTOR_SIGNS[0];
-    float right_duty = motor_pwm_.right_duty * MOTOR_SIGNS[1];
+    float left_duty = motors_.left_duty * MOTOR_SIGNS[0];
+    float right_duty = motors_.right_duty * MOTOR_SIGNS[1];
 
     hbridge_.setDutyA(left_duty);
     hbridge_.setDutyB(right_duty);
@@ -227,8 +243,8 @@ void MainControlTask::runDataCapture(void)
             capture_data_.time = delta_t_ * capture_run_counts_;
             capture_data_.d1 = roll_pitch_yaw_.rpy[1]; // robot tilt (i.e. pitch)
             capture_data_.d2 = wave_.value;
-            capture_data_.d3 = motor_pwm_.left_duty;
-            capture_data_.d4 = motor_pwm_.right_duty;
+            capture_data_.d3 = motors_.left_duty;
+            capture_data_.d4 = motors_.right_duty;
             capture_data_.d5 = odometry_.left_distance;
             capture_data_.d6 = odometry_.right_distance;
             capture_data_.d7 = odometry_.left_speed;

@@ -80,25 +80,25 @@ void MainControlTask::lineFollowingMode(void)
 
     leds_task.requestNewLedGreenPattern(led_state);
 
-    // Calculate difference in duty cycle between motors needed to track line.
+    // Calculate difference in voltage between motors needed to track line.
     // Always command desired line position to zero.
-    float delta_duty = line_track_pid.calculate(0.0f - line_position, delta_t_);
+    float delta_voltage = line_track_pid.calculate(0.0f - line_position, delta_t_);
 
-    float left_duty_command = left_speed_pid.calculate(speed_command - odometry_.left_speed, delta_t_);
-    float right_duty_command = right_speed_pid.calculate(speed_command - odometry_.right_speed, delta_t_);
+    float left_voltage_command = left_speed_pid.calculate(speed_command - odometry_.left_speed, delta_t_);
+    float right_voltage_command = right_speed_pid.calculate(speed_command - odometry_.right_speed, delta_t_);
 
     if (modes_.state != STATE_NORMAL)
     {
-        left_duty_command = 0.0f;
-        right_duty_command = 0.0f;
-        delta_duty = 0.0f;
+        left_voltage_command = 0.0f;
+        right_voltage_command = 0.0f;
+        delta_voltage = 0.0f;
         left_speed_pid.resetIntegral();
         right_speed_pid.resetIntegral();
         line_track_pid.resetIntegral();
     }
 
-    motor_pwm_.left_duty = left_duty_command + delta_duty;
-    motor_pwm_.right_duty = right_duty_command - delta_duty;
+    motors_.left_voltage = left_voltage_command + delta_voltage;
+    motors_.right_voltage = right_voltage_command - delta_voltage;
 
     // Save for next time
     last_line_position = line_position;

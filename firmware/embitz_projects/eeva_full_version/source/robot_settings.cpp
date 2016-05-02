@@ -32,7 +32,7 @@ const float MOTOR_SIGNS[2] = { 1.0f, -1.0f };
 const float ENCODER_SCALES[2] = { ENCODER_2_DIST, -ENCODER_2_DIST };
 
 // Full-state feedback gains. (tilt, tilt rate, wheel position, wheel velocity)
-const float K_DEFAULT[4] = { 1.656f,  0.10f,   0.05f,  0.04f };
+const float K_DEFAULT[4] = { 13.4136f,  0.81f,   0.405f,  0.324f };
 
 // Scales and offsets for accelerometer.
 const float ACCEL_SCALES[3] = { 1.0f, 1.0f, 1.0f };

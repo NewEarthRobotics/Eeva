@@ -201,14 +201,18 @@ typedef struct
 } glo_status_data_t;
 
 //******************************************************************************
-// PWM value applied to each motor.
+// The PWM and corresponding voltage values applied to control each motor.
 typedef struct
 {
     // Duty cycle from -1 (backwards) to 1 (forwards) applied to each motor.
     float left_duty;
     float right_duty;
 
-} glo_motor_pwm_t;
+    // The voltage applied to each motor.
+    float left_voltage;
+    float right_voltage;
+
+} glo_motor_control_t;
 
 //******************************************************************************
 // Experiment wave input

@@ -32,7 +32,7 @@ enum
     GLO_ID_ODOMETRY,
     GLO_ID_MODES,
     GLO_ID_ROBOT_COMMAND,
-    GLO_ID_MOTOR_PWM,
+    GLO_ID_MOTOR_CONTROL,
     GLO_ID_WAVE,
     GLO_ID_PID_PARAMS,
     GLO_ID_REQUEST,
@@ -82,7 +82,7 @@ GLOB(glo_theta_zero,           glo_theta_zero_t,          GLO_ID_THETA_ZERO,    
 GLOB(glo_odometry,             glo_odometry_t,            GLO_ID_ODOMETRY,             1,    MainControlTask);
 GLOB(glo_modes,                glo_modes_t,               GLO_ID_MODES,                1,    ModesTask);
 GLOB(glo_robot_command,        glo_robot_command_t,       GLO_ID_ROBOT_COMMAND,        1,    ModesTask);
-GLOB(glo_motor_pwm,            glo_motor_pwm_t,           GLO_ID_MOTOR_PWM,            1,    MainControlTask);
+GLOB(glo_motor_control,        glo_motor_control_t,       GLO_ID_MOTOR_CONTROL,        1,    MainControlTask);
 GLOB(glo_wave,                 glo_wave_t,                GLO_ID_WAVE,                 1,    MainControlTask);
 GLOB(glo_pid_params,           glo_pid_params_t,          GLO_ID_PID_PARAMS,           NUM_PID_CONTROLLERS,  TelemetryReceiveTask);
 GLOB(glo_request,              glo_request_t,             GLO_ID_REQUEST,              1,    TelemetryReceiveTask);

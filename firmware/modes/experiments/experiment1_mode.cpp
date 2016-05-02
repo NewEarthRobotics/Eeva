@@ -18,9 +18,9 @@ void MainControlTask::experiment1Mode(float experiment_input)
     float speed_command = experiment_input;
 
     float left_speed_error = speed_command - odometry_.left_speed;
-    motor_pwm_.left_duty = left_speed_pid.calculate(left_speed_error, delta_t_);
+    motors_.left_voltage = left_speed_pid.calculate(left_speed_error, delta_t_);
 
     float right_speed_error = speed_command - odometry_.right_speed;
-    motor_pwm_.right_duty = right_speed_pid.calculate(right_speed_error, delta_t_);
+    motors_.right_voltage = right_speed_pid.calculate(right_speed_error, delta_t_);
 
 }

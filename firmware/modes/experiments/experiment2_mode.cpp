@@ -18,9 +18,9 @@ void MainControlTask::experiment2Mode(float experiment_input)
     float position_command = experiment_input;
 
     float left_position_error = position_command - (odometry_.left_distance / WHEEL_RADIUS * RAD2DEG);
-    motor_pwm_.left_duty = left_position_pid.calculate(left_position_error, delta_t_);
+    motors_.left_voltage = left_position_pid.calculate(left_position_error, delta_t_);
 
     float right_position_error = position_command - (odometry_.right_distance / WHEEL_RADIUS * RAD2DEG);
-    motor_pwm_.right_duty = right_position_pid.calculate(right_position_error, delta_t_);
+    motors_.right_voltage = right_position_pid.calculate(right_position_error, delta_t_);
 
 }

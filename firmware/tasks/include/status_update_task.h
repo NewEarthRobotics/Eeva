@@ -38,7 +38,7 @@ private: // fields
     glo_roll_pitch_yaw_t roll_pitch_yaw_;
     glo_odometry_t odometry_;
     glo_analog_t analog_;
-    glo_motor_pwm_t motor_pwm_;
+    glo_motor_control_t motors_;
 
     // Globs that this task owns.
     glo_status_data_t status_data_;

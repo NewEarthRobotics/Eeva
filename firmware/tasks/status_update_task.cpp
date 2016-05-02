@@ -23,7 +23,7 @@ void StatusUpdateTask::readNewData(void)
     glo_odometry.read(&odometry_);
     glo_modes.read(&modes_);
     glo_analog.read(&analog_);
-    glo_motor_pwm.read(&motor_pwm_);
+    glo_motor_control.read(&motors_);
 }
 
 //******************************************************************************
@@ -58,8 +58,8 @@ void StatusUpdateTask::run(void)
     status_data_.right_linear_velocity = odometry_.right_speed;
     status_data_.left_angular_velocity = odometry_.left_speed / WHEEL_RADIUS;
     status_data_.right_angular_velocity = odometry_.right_speed / WHEEL_RADIUS;
-    status_data_.left_pwm = motor_pwm_.left_duty;
-    status_data_.right_pwm = motor_pwm_.right_duty;
+    status_data_.left_pwm = motors_.left_duty;
+    status_data_.right_pwm = motors_.right_duty;
     status_data_.firmware_version = FIRMWARE_VERSION;
     memcpy(status_data_.processor_id, (void *)0x1FFF7A10, 12);
 
