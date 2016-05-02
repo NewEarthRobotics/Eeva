@@ -54,6 +54,13 @@ float PidController::calculate(float error, float dt)
 //******************************************************************************
 void PidController::set(glo_pid_params_t const & params)
 {
+    if (ki_ != params.ki)
+    {
+        // If user changes the integral gain then we want to zero out integral so that
+        // the controller performance is only a function of the current (new) gains.
+        resetIntegral();
+    }
+
     kp_ = params.kp;
     kd_ = params.kd;
     ki_ = params.ki;
