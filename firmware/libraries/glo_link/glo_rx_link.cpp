@@ -108,7 +108,9 @@ bool GloRxLink::verifyCRC(void)
 
     bool crc_matches = (actual_crc == expected_crc);
 
-    assert_msg(crc_matches, ASSERT_CONTINUE, "Bad CRC. Expected %x actual %x", expected_crc, actual_crc);
+    // Don't print off message because it might freak user out.  Ideally the total number of failed CRC checks
+    // would be sent back in the status message and shown on the UI.
+    //assert_msg(crc_matches, ASSERT_CONTINUE, "Bad CRC. Expected %x actual %x", expected_crc, actual_crc);
 
     return crc_matches;
 }
