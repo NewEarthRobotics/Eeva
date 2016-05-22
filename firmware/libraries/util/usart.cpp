@@ -68,19 +68,6 @@ bool Usart::sendBuffer(uint8_t const * data, uint16_t len)
 }
 
 //*****************************************************************************
-void Usart::updateBaudrate(uint32_t baudrate)
-{
-    USART_InitTypeDef USART_InitStructure;
-    USART_InitStructure.USART_BaudRate = baudrate;
-    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-    USART_InitStructure.USART_StopBits = USART_StopBits_1;
-    USART_InitStructure.USART_Parity = USART_Parity_No;
-    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx; // TODO: This is causes modes to change for RX only or TX only ports
-    USART_Init(USARTx_, &USART_InitStructure);
-}
-
-//*****************************************************************************
 void Usart::InitBus1(void)
 {
     GPIO_InitTypeDef  GPIO_InitStructure;
@@ -174,7 +161,7 @@ void Usart::InitBus2(void)
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART_InitStructure.USART_StopBits = USART_StopBits_1;
     USART_InitStructure.USART_Parity = USART_Parity_No;
-    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_CTS;
     USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
     USART_Init(USART2, &USART_InitStructure);
 
@@ -182,13 +169,15 @@ void Usart::InitBus2(void)
     GPIO_PinAFConfig(GPIOD, GPIO_PinSource6, GPIO_AF_USART2);
     // Connect Tx to USART.
     GPIO_PinAFConfig(GPIOD, GPIO_PinSource5, GPIO_AF_USART2);
+    // Connect CTS to USART.
+    GPIO_PinAFConfig(GPIOD, GPIO_PinSource3, GPIO_AF_USART2);
 
-    // Configure USART Tx/Rx as alternate function.
+    // Configure USART Tx/Rx/CTS as alternate function.
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_3;
     GPIO_Init(GPIOD, &GPIO_InitStructure);
 
     USART_DMACmd(USART2, USART_DMAReq_Rx, ENABLE);
