@@ -19,7 +19,7 @@ class SimpleArray
         data_ = new T[max_num_elements_];
         valid_ = new bool[max_num_elements_];
 
-        for (uint32_t i = 0; i < max_num_elements_; ++i)
+        for (array_idx_t i = 0; i < max_num_elements_; ++i)
         {
             valid_[i] = false;
         }
@@ -59,7 +59,8 @@ class SimpleArray
       T * data_;      // Backing array (buffer) for the actual data.
       bool * valid_;  // Array of flags that are true if the corresponding index in 'data_' is valid.
 
-      uint32_t max_num_elements_; // Maximum number of elements that array can hold.
+      int32_t max_num_elements_; // Maximum number of elements that array can hold.
+                                 // Is signed but should be initialized positive by constructor.
 
 };
 
