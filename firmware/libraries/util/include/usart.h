@@ -51,6 +51,9 @@ public: // methods
     // Return true if there's nothing left in the receive buffer.
     bool empty(void) const { return dma_rx_->empty(); }
 
+    // Update the serial port baud rate (bits / second). This will re-initialize the bus.
+    void updateBaudrate(uint32_t baudrate);
+
     // Interrupt service routines which just delegate off to the DMA handlers.
     static void USART1_TX_ISR(void) { Usart::objs[USART_BUS_1].dma_tx_->handleISR(); }
     static void USART2_TX_ISR(void) { Usart::objs[USART_BUS_2].dma_tx_->handleISR(); }
